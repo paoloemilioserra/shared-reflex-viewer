@@ -6,7 +6,7 @@ The project leverages APS endpoints to retrieve a three-legged token.
 # How to Use It
 1. Clone the project
 2. Create an app on [aps.autodesk.com](https://aps.autodesk.com/)
-3. Copy the Client Id and the Client Secret and Redirect URL in a `.env` file and add it to the project in the same folder where `aps.py` is located.
+3. Copy the Client Id and the Client Secret and Redirect URL in the `.env` file in the same folder where `aps.py` is located.
 
     The `.env` file should look like this:
 
