@@ -38,6 +38,7 @@ class State(rx.State):
             return
         code = urllib.parse.parse_qs(parsed.query).get('code', [''])[0]
         if not aps.is_token_valid():
+            yield rx.remove_local_storage('aps_token')
             token = aps.get_3_legged_token(('data:read', 'data:write', 'data:create'), code)
         self.aps_token = repr(token)
 
