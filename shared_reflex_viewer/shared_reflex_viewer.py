@@ -32,6 +32,7 @@ class State(rx.State):
 
     def login(self):
         global token
+
         fp = self.router.page.full_raw_path
         parsed = urllib.parse.urlparse(fp)
         if len(parsed.query) == 0:
@@ -110,24 +111,24 @@ def menu_button() -> rx.Component:
     Returns:
         The menu button component.
     """
-    return rx.box(
+    return rx.chakra.box(
         rx.chakra.menu(
             rx.chakra.menu_button(
-                rx.icon(
-                    tag="menu_square",
+                rx.chakra.icon(
+                    tag="hamburger",
                     size=40,
                     color=styles.dark_slate,
-                    border='1px',
+                    stroke_width=1,
                 ),
             ),
             rx.chakra.menu_list(
                 rx.chakra.menu_item(
-                    rx.text('Log In'),
+                    rx.chakra.text('Log In'),
                     on_click=rx.redirect(aps.get_code_address(), external=False)
                 ),
                 rx.chakra.menu_divider(),
                 rx.chakra.menu_item(
-                    rx.text('Copyright Autodesk, Inc. © 2024'),
+                    rx.chakra.text('Copyright Autodesk, Inc. © 2024'),
                 ),
             ),
         ),
@@ -138,19 +139,24 @@ def menu_button() -> rx.Component:
     )
 
 
+def get_style_sheet() -> rx.Component:
+    return rx.html('<link rel="stylesheet" href="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.min.css" type="text/css">')
+
+
 def index() -> rx.Component:
     global token
-    return rx.vstack(
+    return rx.chakra.vstack(
         rx.script(src="https://developer.api.autodesk.com/viewingservice/v2/viewers/three.min.js"),
         rx.script(src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/7.*/viewer3D.min.js"),
+        get_style_sheet(),
         rx.fragment(
-            rx.heading("APS Viewer", font_size="2em"),
+            rx.chakra.heading("APS Viewer", font_size="2em"),
             menu_button(),
         ),
-        rx.box(
-            rx.box(
-                rx.vstack(
-                    rx.box(
+        rx.chakra.box(
+            rx.chakra.box(
+                rx.chakra.vstack(
+                    rx.chakra.box(
                         id='apsViewer',
                         width='800px',
                         height='600px',
@@ -162,12 +168,12 @@ def index() -> rx.Component:
 
             )
         ),
-        create_viewer('dXJuOmFkc2sud2lwcHJvZDpmcy5maWxlOnZmLm1xNV9mVlJGUjV1SU1Cd29sUHNNLXc_dmVyc2lvbj0x'),
+        create_viewer('dXJuOmFkc2sud2lwcHJvZDpmcy5maWxlOnZmLm1xNV9mVlJGUjV1SU1Cd29sUHNNLXc_dmVyc2lvbj0x'),  # Edit this URN to test the viewer with content you have access to
         on_mount=State.login,
     )
 
 
 # Create app instance and add index page.
-app = rx.App(stylesheets=['viewer.css'])
+app = rx.App()  # stylesheets=['viewer.css'])
 app.add_page(index, route='/', description='Autodesk Consulting', title='APS Viewer')
 
