@@ -53,3 +53,6 @@ permissions and limitations under the License.
 * python-decouple
 * requests
 
+# Contributors
+* Paolo Serra (Autodesk)
+* Martin Xu (Reflex)
