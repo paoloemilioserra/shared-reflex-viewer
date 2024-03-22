@@ -31,6 +31,7 @@ import logging
 import requests
 import urllib
 
+import aps
 
 CONSUMER_KEY = decouple.config('CONSUMER_KEY')
 CONSUMER_SECRET = decouple.config('CONSUMER_SECRET')
@@ -206,7 +207,7 @@ def get_2_legged_token(scope: Sequence[str] = None) -> Token:
     global token
 
     if scope is None:
-        scope = ['data:read']
+        scope = ('data:read', )
 
     token.Scope = scope
     token.Legs = 2

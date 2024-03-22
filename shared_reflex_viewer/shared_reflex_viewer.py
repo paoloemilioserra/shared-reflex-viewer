@@ -176,7 +176,7 @@ def index() -> rx.Component:
             rx.chakra.heading("APS Viewer", font_size="2em"),
             menu_button(),
         ),
-        create_viewer("dXJuOmFkc2sud2lwcHJvZDpmcy5maWxlOnZmLm1xNV9mVlJGUjV1SU1Cd29sUHNNLXc_dmVyc2lvbj0x"),  # TODO change the urn to a model you have access to on Autodesk Docs
+        create_viewer("dXJuOmFkc2sud2lwcHJvZDpmcy5maWxlOnZmLm1xNV9mVlJGUjV1SU1Cd29sUHNNLXc_dmVyc2lvbj0x"),
         on_mount=State.login,
     )
 
