@@ -17,6 +17,7 @@ __author__ = "Paolo Emilio Serra - paolo.serra@autodesk.com"
 __copyright__ = "2024"
 __version__ = "1.0.0"
 
+import logging
 
 import reflex as rx
 import urllib
@@ -31,23 +32,27 @@ token = aps.token
 
 class State(rx.State):
     aps_token: str = rx.LocalStorage("{}", name="aps_token")
+    access: str = ''
+    expires: str = ''
 
     def login(self):
         global token
-
         fp = self.router.page.full_raw_path
         parsed = urllib.parse.urlparse(fp)
         if len(parsed.query) == 0:
             return
         code = urllib.parse.parse_qs(parsed.query).get("code", [""])[0]
-        if not aps.is_token_valid():
-            yield rx.remove_local_storage('aps_token')
-            token = aps.get_3_legged_token(("data:read", "data:write", "data:create"), code)
+        if len(code) > 0:
+            if not aps.is_token_valid():
+                token = aps.get_3_legged_token(("data:read",), code)
         self.aps_token = repr(token)
+        self.access = token.Access
+        self.expires = str(token.Expires)
 
 
 def create_viewer_old(urn: str) -> rx.Component:
     global token
+
     return rx.script(
         """
         var viewer;
@@ -67,7 +72,7 @@ def create_viewer_old(urn: str) -> rx.Component:
             <!-- This is called when the page is loaded-->
             Autodesk.Viewing.Initializer(options, function() {
 
-                var htmlDiv = document.getElementById('apsViewer');
+                var htmlDiv = document.getElementById('apsViewer_old');
                 viewer = new Autodesk.Viewing.GuiViewer3D(htmlDiv);
                 var startedCode = viewer.start();
 
@@ -110,8 +115,6 @@ def create_viewer_old(urn: str) -> rx.Component:
 
 def create_viewer(urn: str) -> rx.Component:
     global token
-    if token.Access is None:
-        return rx.fragment()
     return viewer(
         name='apsViewer',
         access_token=token.Access,
@@ -141,7 +144,7 @@ def menu_button() -> rx.Component:
             rx.chakra.menu_list(
                 rx.chakra.menu_item(
                     rx.chakra.text('Log In'),
-                    on_click=rx.redirect(aps.get_code_address(), external=False)
+                    on_click=rx.redirect(aps.get_code_address(('data:read', )), external=False)
                 ),
                 rx.chakra.menu_divider(),
                 rx.chakra.menu_item(
@@ -176,6 +179,12 @@ def index() -> rx.Component:
             rx.chakra.heading("APS Viewer", font_size="2em"),
             menu_button(),
         ),
+        # rx.box(
+        #     id='apsViewer_old',
+        #     width='100%',
+        #     height='600px'
+        # ),
+        # create_viewer_old("dXJuOmFkc2sud2lwcHJvZDpmcy5maWxlOnZmLm1xNV9mVlJGUjV1SU1Cd29sUHNNLXc_dmVyc2lvbj0x"),
         create_viewer("dXJuOmFkc2sud2lwcHJvZDpmcy5maWxlOnZmLm1xNV9mVlJGUjV1SU1Cd29sUHNNLXc_dmVyc2lvbj0x"),
         on_mount=State.login,
     )
