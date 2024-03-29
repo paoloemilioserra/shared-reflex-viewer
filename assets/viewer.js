@@ -8,20 +8,31 @@ class Viewer extends React.Component {
     this.viewer = null;
     this.md_ViewerDocument = null;
     this.md_viewables = null;
+    this.state = {urn: '', access_token: '', expires: ''}
   }
 
   componentDidMount() {
     this.initializeViewer();
   }
 
+  fn = () => {
+    this.setState(function(state, props) {
+        return {
+            urn: props.urn,
+            access_token: props.access_token,
+            expires: props.expires
+        }}
+    );
+  }
+
   initializeViewer = () => {
     var options = {
-      env: 'AutodeskProduction2',
-      api: 'streamingV2',
-      getAccessToken: (onTokenReady) => {
-        onTokenReady(this.props.access_token, this.props.expires);
-      }
-    };
+          env: 'AutodeskProduction2',
+          api: 'streamingV2',
+          getAccessToken: (onTokenReady) => {
+            onTokenReady(this.state.access_token, this.state.expires);
+          }
+        }
 
     window.Autodesk.Viewing.Initializer(options, () => {
       var htmlDiv = document.getElementById(this.props.name);
@@ -33,7 +44,8 @@ class Viewer extends React.Component {
       }
       console.log('Initialization complete, loading a model next...');
 
-      var documentId = 'urn:' + this.props.urn;
+
+      var documentId = 'urn:' + this.state.urn;
       Autodesk.Viewing.Document.load(documentId, this.onDocumentLoadSuccess, this.onDocumentLoadFailure);
     });
   };
@@ -58,6 +70,9 @@ class Viewer extends React.Component {
     const w = this.props.width;
     const h = this.props.height;
     const p = this.props.position;
+    if (this.props.access_token === ''){
+        return <div></div>;
+    }
     return <div id={n} position={p} style={{width: w, height: h}}></div>;
   }
 }
