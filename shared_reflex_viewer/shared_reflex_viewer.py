@@ -18,6 +18,7 @@ __copyright__ = "2024"
 __version__ = "1.0.0"
 
 import logging
+from typing import Any
 
 import reflex as rx
 import urllib
@@ -32,8 +33,13 @@ token = aps.token
 
 class State(rx.State):
     aps_token: str = rx.LocalStorage("{}", name="aps_token")
-    access: str = ''
-    expires: str = ''
+    urn: str = ''
+    model: str = 'STR'
+
+    models: list[tuple[str, str]] = [
+        ('STR', 'dXJuOmFkc2sud2lwcHJvZDpmcy5maWxlOnZmLm1xNV9mVlJGUjV1SU1Cd29sUHNNLXc_dmVyc2lvbj0x'),
+        ('MEP', 'dXJuOmFkc2sud2lwcHJvZDpmcy5maWxlOnZmLmh5MElubDV6VHA2dGEzUGxOUDlwTEE_dmVyc2lvbj0x')
+    ]
 
     def login(self):
         global token
@@ -46,8 +52,19 @@ class State(rx.State):
             if not aps.is_token_valid():
                 token = aps.get_3_legged_token(("data:read",), code)
         self.aps_token = repr(token)
-        self.access = token.Access
-        self.expires = str(token.Expires)
+
+    @rx.var
+    def access(self) -> str:
+        global token
+        return token.Access if token.Access is not None else ''
+
+    @rx.var
+    def expires(self) -> str:
+        global token
+        return str(token.Expires)
+
+    def set_urn(self, e: str):
+        self.urn = e
 
 
 def create_viewer_old(urn: str) -> rx.Component:
@@ -113,13 +130,13 @@ def create_viewer_old(urn: str) -> rx.Component:
      )
 
 
-def create_viewer(urn: str) -> rx.Component:
+def create_viewer() -> rx.Component:
     global token
     return viewer(
         name='apsViewer',
-        access_token=token.Access,
-        expires=str(token.Expires),
-        urn=urn,
+        access=State.access,
+        expires=State.expires,
+        urn=State.urn,
         width="100%",
         height="600px",
     )
@@ -177,15 +194,21 @@ def index() -> rx.Component:
         get_style_sheet(),
         rx.fragment(
             rx.chakra.heading("APS Viewer", font_size="2em"),
+            rx.select.root(
+                rx.select.trigger(placeholder='Select Model'),
+                rx.select.content(
+                    rx.select.group(
+                        rx.foreach(
+                            State.models,
+                            lambda x: rx.select.item(x[0], value=x[1])
+                        )
+                    )
+                ),
+                on_change=State.set_urn,
+            ),
             menu_button(),
         ),
-        # rx.box(
-        #     id='apsViewer_old',
-        #     width='100%',
-        #     height='600px'
-        # ),
-        # create_viewer_old("dXJuOmFkc2sud2lwcHJvZDpmcy5maWxlOnZmLm1xNV9mVlJGUjV1SU1Cd29sUHNNLXc_dmVyc2lvbj0x"),
-        create_viewer("dXJuOmFkc2sud2lwcHJvZDpmcy5maWxlOnZmLm1xNV9mVlJGUjV1SU1Cd29sUHNNLXc_dmVyc2lvbj0x"),
+        create_viewer(),
         on_mount=State.login,
     )
 
