@@ -8,7 +8,7 @@ class Viewer(rx.NoSSRComponent):
     is_default = True
 
     name: rx.Var[str] = "apsViewer"
-    access_token: rx.Var[str]
+    access: rx.Var[str]
     expires: rx.Var[str]
     urn: rx.Var[str]
     width: rx.Var[str] = "100%"
