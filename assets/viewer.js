@@ -6,8 +6,7 @@ class Viewer extends React.Component {
     super(props);
     this.viewer = null;
     this.md_ViewerDocument = null;
-    this.md_viewables = null;
-    // this.state = {urn: props.urn, access: props.access, expires: props.expires}
+    this.md_viewables = null;    
   }
 
   componentDidMount() {
