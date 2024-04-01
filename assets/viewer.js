@@ -1,6 +1,5 @@
 import React from 'react';
 
-const { Autodesk } = window;
 
 class Viewer extends React.Component {
   constructor(props) {
@@ -8,21 +7,36 @@ class Viewer extends React.Component {
     this.viewer = null;
     this.md_ViewerDocument = null;
     this.md_viewables = null;
-    this.state = {urn: '', access_token: '', expires: ''}
+    // this.state = {urn: props.urn, access: props.access, expires: props.expires}
   }
 
   componentDidMount() {
-    this.initializeViewer();
+      this.initializeViewer();
   }
 
-  fn = () => {
-    this.setState(function(state, props) {
-        return {
-            urn: props.urn,
-            access_token: props.access_token,
-            expires: props.expires
-        }}
-    );
+  componentWillUnmount() {
+    this.setState({urn: '', access: '', expires: ''});
+    if (this.viewer != null){
+        this.viewer.finish();
+        this.viewer = null;
+        this.md_ViewerDocument = null;
+        this.md_viewables = null;
+        Autodesk.Viewing.shutdown();
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    if (!this.viewer) {
+        if (this.props.urn !== '') {
+            this.initializeViewer();
+        }
+      return;
+    }
+    const { urn, access, expires } = this.props;
+    if (prevProps.urn !== urn || prevProps.access != access || prevProps.expires != expires) {
+      this.changeDocument();
+      return;
+    }
   }
 
   initializeViewer = () => {
@@ -30,24 +44,40 @@ class Viewer extends React.Component {
           env: 'AutodeskProduction2',
           api: 'streamingV2',
           getAccessToken: (onTokenReady) => {
-            onTokenReady(this.state.access_token, this.state.expires);
+            onTokenReady(this.props.access, this.props.expires);
           }
-        }
+        };
 
-    window.Autodesk.Viewing.Initializer(options, () => {
+    Autodesk.Viewing.Initializer(options, () => {
+      if (this.props.urn === '') {
+        return;
+      }
       var htmlDiv = document.getElementById(this.props.name);
-      this.viewer = new window.Autodesk.Viewing.GuiViewer3D(htmlDiv);
+      this.viewer = new Autodesk.Viewing.GuiViewer3D(htmlDiv);
       var startedCode = this.viewer.start();
       if (startedCode > 0) {
         console.error('Failed to create a Viewer: WebGL not supported.');
         return;
       }
+
       console.log('Initialization complete, loading a model next...');
 
-
-      var documentId = 'urn:' + this.state.urn;
+      var documentId = 'urn:' + this.props.urn;
       Autodesk.Viewing.Document.load(documentId, this.onDocumentLoadSuccess, this.onDocumentLoadFailure);
     });
+  };
+
+  changeDocument = (e) => {
+    if (this.md_ViewerDocument !== null){
+        if(this.md_ViewerDocument.getRoot().urn(false) !== this.props.urn) {
+            var documentId = 'urn:' + this.props.urn;
+            this.md_ViewerDocument = documentId;
+            Autodesk.Viewing.Document.load(documentId, this.onDocumentLoadSuccess, this.onDocumentLoadFailure);
+            this.viewer.run();
+        }
+    } else {
+       this.initializeViewer();
+    }
   };
 
   onDocumentLoadSuccess = (viewerDocument) => {
@@ -70,9 +100,6 @@ class Viewer extends React.Component {
     const w = this.props.width;
     const h = this.props.height;
     const p = this.props.position;
-    if (this.props.access_token === ''){
-        return <div></div>;
-    }
     return <div id={n} position={p} style={{width: w, height: h}}></div>;
   }
 }
