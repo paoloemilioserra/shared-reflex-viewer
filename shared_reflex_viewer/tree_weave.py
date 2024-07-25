@@ -17,20 +17,8 @@ from components import utils
 
 class TreeWeaveState(rx.State):
     resources: dict[str, list[ResourceType]] = {}
-    project_id: str = 'b.d6e22fa5-495e-472d-abf5-0975ba926094'
+    project_id: str = '<xxxxx>'
     root_id: str = ''
-
-    data_: dict[str, ResourceType] = {
-        'urn:adsk.wipprod:fs.folder:co.bYfJZ3GUTbmXx3FqFZG7bg': ResourceType(
-            id='urn:adsk.wipprod:fs.folder:co.bYfJZ3GUTbmXx3FqFZG7bg',
-            name='Project Files',
-            paretn=None,
-            is_folder=True,
-            is_loading=True,
-            children=[]
-        )
-    }
-
     data: dict[str, ResourceType] = {}
 
     async def get_project_files_folder(self):
@@ -104,7 +92,7 @@ def example(name: str, component: rx.Component) -> rx.Component:
 def render_tree():
     return tree(
         folder_tree=True,
-        root_id='urn:adsk.wipprod:fs.folder:co.bYfJZ3GUTbmXx3FqFZG7bg',  # TreeWeaveState.root_id,
+        root_id='xxxxx',  # TreeWeaveState.root_id,
         data=TreeWeaveState.data,
         on_node_select=TreeWeaveState.handle_on_node_select,
     )
